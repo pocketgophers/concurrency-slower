@@ -1,0 +1,16 @@
+diff --git a/main_test.go b/main_test.go
+index b9d3afd..928622f 100644
+--- a/main_test.go
++++ b/main_test.go
+@@ -33,3 +33,11 @@ func compareVersions(t *testing.T, a, b func(int64) [][]int) {
+ func TestOracle(t *testing.T) {
+ 	compareVersions(t, serial, serial)
+ }
++
++func TestOriginal(t *testing.T) {
++	compareVersions(t, serial, original)
++}
++
++func TestFastest(t *testing.T) {
++	compareVersions(t, serial, fastest)
++}

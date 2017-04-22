@@ -1,0 +1,292 @@
+diff --git a/main.go b/main.go
+index 26a4612..414818c 100644
+--- a/main.go
++++ b/main.go
+@@ -2,8 +2,10 @@ package main
+ 
+ import (
+ 	"fmt"
++	"log"
+ 	"math/rand"
+ 	"os"
++	"runtime"
+ 	"sync"
+ 	"time"
+ )
+@@ -20,6 +22,7 @@ func main() {
+ 		"original": original,
+ 		"fastest":  fastest,
+ 		"serial":   serial,
++		"parallel": parallel,
+ 	}
+ 
+ 	if len(os.Args) != 2 {
+@@ -142,3 +145,87 @@ func serial(seed int64) [][]int {
+ 
+ 	return list
+ }
++
++func serial2(seed int64) [][]int {
++	const n = 10000000 // number of lotto numbers to produce
++	list := make([][]int, 0, n)
++	r := rand.New(rand.NewSource(seed))
++
++	for i := 0; i < n; i++ {
++		list = append(list, []int{
++			r.Intn(49),
++			r.Intn(49),
++			r.Intn(49),
++			r.Intn(49),
++			r.Intn(49),
++			r.Intn(49),
++			r.Intn(49),
++		})
++	}
++
++	return list
++}
++
++func serial3(seed int64) [][]int {
++	const n = 10000000 // number of lotto numbers to produce
++	list := make([][]int, n)
++	r := rand.New(rand.NewSource(seed))
++
++	for i := 0; i < n; i++ {
++		list[i] = []int{
++			r.Intn(49),
++			r.Intn(49),
++			r.Intn(49),
++			r.Intn(49),
++			r.Intn(49),
++			r.Intn(49),
++			r.Intn(49),
++		}
++	}
++
++	return list
++}
++
++func parallel(seed int64) [][]int {
++	const n = 10000000
++	list := make([][]int, n)
++	var wg sync.WaitGroup
++	workers := runtime.GOMAXPROCS(-1) // one for each proc
++
++	for i := 0; i < workers; i++ {
++		work := n / workers
++		begin := work * i
++		end := begin + work
++
++		if i == workers-1 {
++			end += n % workers
++		}
++
++		thisSeed := seed + 7*int64(begin)
++		if i != 0 {
++			seed -= 7
++		}
++		log.Println(i, thisSeed)
++		r := rand.New(rand.NewSource(thisSeed))
++
++		wg.Add(1)
++		go func() {
++			defer wg.Done()
++
++			for i := begin; i < end; i++ {
++				list[i] = []int{
++					r.Intn(49),
++					r.Intn(49),
++					r.Intn(49),
++					r.Intn(49),
++					r.Intn(49),
++					r.Intn(49),
++					r.Intn(49),
++				}
++			}
++		}()
++	}
++
++	wg.Wait()
++	return list
++}
+diff --git a/main_test.go b/main_test.go
+index 928622f..51d0178 100644
+--- a/main_test.go
++++ b/main_test.go
+@@ -1,14 +1,65 @@
+ package main
+ 
+ import (
+-	"reflect"
++	"math/rand"
+ 	"testing"
+ 	"time"
++
++	"github.com/lunny/log"
+ )
+ 
++func TestRand3(t *testing.T) {
++	const seed = 0
++
++	r1 := rand.New(rand.NewSource(seed))
++
++	const n = 10000000 * 7
++
++	for i := 0; i < n; i++ {
++		r2 := rand.New(rand.NewSource(seed + int64(i)))
++
++		i1 := r1.Intn(49)
++		i2 := r2.Intn(49)
++
++		if i1 != i2 {
++			t.Errorf("%d: %d %d", i, i1, i2)
++		}
++	}
++}
++
++func TestRand2(t *testing.T) {
++	const seed = 0
++
++	r1 := rand.New(rand.NewSource(seed))
++	r2 := rand.New(rand.NewSource(seed + 1))
++
++	r1.Intn(49)
++
++	t.Log(r1.Intn(49), r2.Intn(49))
++}
++
++func TestRand(t *testing.T) {
++	const seed = 0
++
++	r1 := rand.New(rand.NewSource(seed))
++	r2 := rand.New(rand.NewSource(seed))
++
++	const n = 10000000 * 7
++
++	for i := 0; i < n; i++ {
++		i1 := r1.Intn(49)
++		i2 := r2.Intn(49)
++
++		if i1 != i2 {
++			log.Errorf("%d: %d %d", i, i1, i2)
++		}
++	}
++}
++
+ func compareVersions(t *testing.T, a, b func(int64) [][]int) {
+ 	const n = 10000000
+-	seed := time.Now().UnixNano()
++	// seed := time.Now().UnixNano()
++	const seed = 0
+ 
+ 	aList := a(seed)
+ 	bList := b(seed)
+@@ -22,12 +73,30 @@ func compareVersions(t *testing.T, a, b func(int64) [][]int) {
+ 	}
+ 
+ 	if len(aList) != len(bList) {
+-		t.Errorf("expecte lists to be the same length. a had %d, b had %d", len(aList), len(bList))
++		t.Errorf("expected lists to be the same length. a had %d, b had %d", len(aList), len(bList))
++	}
++
++	listsAreSame := true
++	var i, j int
++	for i = 0; listsAreSame && i < len(aList); i++ {
++		aPart := aList[i]
++		bPart := bList[i]
++		for j = 0; listsAreSame && j < len(aPart); j++ {
++			if aPart[j] != bPart[j] {
++				listsAreSame = false
++			}
++		}
+ 	}
+ 
+-	if !reflect.DeepEqual(aList, bList) {
+-		t.Errorf("a did not produce the same list as b")
++	if !listsAreSame {
++		t.Errorf("lists are not same, starting at:\n\taList[%d]: %v\n\tbList[%d]: %v", i, aList[i], i, bList[i])
+ 	}
++
++	// if !reflect.DeepEqual(aList, bList) {
++	// 	t.Errorf("a did not produce the same list as b")
++	// 	t.Log(aList[:10])
++	// 	t.Log(bList[:10])
++	// }
+ }
+ 
+ func TestOracle(t *testing.T) {
+@@ -41,3 +110,35 @@ func TestOriginal(t *testing.T) {
+ func TestFastest(t *testing.T) {
+ 	compareVersions(t, serial, fastest)
+ }
++
++func TestParallel(t *testing.T) {
++	compareVersions(t, serial3, parallel)
++}
++
++func TestSerial2(t *testing.T) {
++	compareVersions(t, serial, serial2)
++}
++
++func TestSerial3(t *testing.T) {
++	compareVersions(t, serial, serial3)
++}
++
++func benchmarkVersions(b *testing.B, version func(int64) [][]int) {
++	seed := time.Now().UnixNano()
++
++	for i := 0; i < b.N; i++ {
++		version(seed)
++	}
++}
++
++func BenchmarkSerial(b *testing.B) {
++	benchmarkVersions(b, serial)
++}
++
++func BenchmarkSerial2(b *testing.B) {
++	benchmarkVersions(b, serial2)
++}
++
++func BenchmarkSerial3(b *testing.B) {
++	benchmarkVersions(b, serial3)
++}
+diff --git a/rand/rand.go b/rand/rand.go
+new file mode 100644
+index 0000000..2eda24d
+--- /dev/null
++++ b/rand/rand.go
+@@ -0,0 +1,33 @@
++package main
++
++import (
++	"log"
++	"math/rand"
++)
++
++func main() {
++	log.SetFlags(log.Lshortfile)
++
++	const seed = 1
++
++	r1 := rand.New(rand.NewSource(seed))
++
++	const n = 10000000 * 7
++
++	// bar := pb.StartNew(n)
++	// defer bar.Finish()
++
++	for i := 0; i < n; i++ {
++		thisSeed := seed + int64(i)
++		r2 := rand.New(rand.NewSource(thisSeed))
++
++		i1 := r1.Intn(49)
++		i2 := r2.Intn(49)
++
++		// if i1 != i2 {
++		log.Printf("%d (%d): %d %d", i, thisSeed, i1, i2)
++		// }
++
++		// bar.Increment()
++	}
++}

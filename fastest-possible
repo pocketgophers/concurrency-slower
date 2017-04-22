@@ -1,0 +1,53 @@
+diff --git a/main.go b/main.go
+index 633a1a7..0c8a5bf 100644
+--- a/main.go
++++ b/main.go
+@@ -11,7 +11,7 @@ func main() {
+ 	start := time.Now()
+ 	fmt.Println("Start")
+ 
+-	list := original(time.Now().UnixNano())
++	list := fastest(time.Now().UnixNano())
+ 
+ 	d := time.Now().Sub(start)
+ 	fmt.Println("End ", len(list), " ", d.Seconds())
+@@ -55,3 +55,39 @@ func add(c chan []int) {
+ 		rand.Intn(49),
+ 	}
+ }
++
++var wg sync.WaitGroup
++
++func fastest(seed int64) [][]int {
++	var parallelCount = 10
++	var iterations = 1000000
++	var list = make([][]int, parallelCount*iterations)
++
++	wg.Add(parallelCount)
++	for i := 0; i < parallelCount; i++ {
++		go func() {
++			defer wg.Done()
++
++			r := rand.New(rand.NewSource(seed))
++
++			for i := 0; i < iterations; i++ {
++				list[parallelCount*iterations-1] = add2(r)
++			}
++		}()
++	}
++	wg.Wait()
++
++	return list
++}
++
++func add2(r *rand.Rand) []int {
++	return []int{
++		r.Intn(49),
++		r.Intn(49),
++		r.Intn(49),
++		r.Intn(49),
++		r.Intn(49),
++		r.Intn(49),
++		r.Intn(49),
++	}
++}

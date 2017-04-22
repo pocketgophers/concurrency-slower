@@ -1,0 +1,96 @@
+<h1>/Users/alaster/src/concurreny-slower</h1>
+
+
+{{removeAll .SiteDir}}
+{{mkdirAll .SiteDir}}
+{{removeAll .BuildDir}}
+{{mkdirAll .BuildDir}}
+{{cd .BuildDir}}
+{{runNoOutput "git" "init"}}
+
+
+<h2>original</h2>
+{{patch "original" "original"}}
+
+<p>
+</p>
+
+
+{{file "main.go"}}
+
+
+<h2>move to function</h2>
+{{patch "move-to-function" "move to function"}}
+
+<p>
+</p>
+
+
+{{file "main.go"}}
+
+
+<h2>fastest possible?</h2>
+{{patch "fastest-possible" "fastest possible?"}}
+
+<p>
+</p>
+
+
+{{file "main.go"}}
+
+
+<h2>switching versions</h2>
+{{patch "switching-versions" "switching versions"}}
+
+<p>
+</p>
+
+
+{{file "main.go"}}
+
+
+<h2>a correct serial version</h2>
+{{patch "a-correct-serial-version" "a correct serial version"}}
+
+<p>
+</p>
+
+
+{{file "main.go"}}
+
+
+<h2>testing the oracle</h2>
+{{patch "testing-the-oracle" "testing the oracle"}}
+
+<p>
+</p>
+
+
+{{file "main_test.go"}}
+
+
+<h2>test the other versions</h2>
+{{patch "test-the-other-versions" "test the other versions"}}
+
+<p>
+</p>
+
+
+{{file "main_test.go"}}
+
+
+<h2>parallel before needing to revert</h2>
+{{patch "parallel-before-needing-to-revert" "parallel before needing to revert"}}
+
+<p>
+</p>
+
+
+{{file "main.go"}}
+
+{{file "main_test.go"}}
+
+{{file "rand/rand.go"}}
+
+
+

@@ -1,0 +1,54 @@
+diff --git a/main.go b/main.go
+index 0c8a5bf..b590af9 100644
+--- a/main.go
++++ b/main.go
+@@ -3,18 +3,48 @@ package main
+ import (
+ 	"fmt"
+ 	"math/rand"
++	"os"
+ 	"sync"
+ 	"time"
+ )
+ 
++func usage(versions map[string]func(int64) [][]int) {
++	fmt.Println("usage: go run main.go <version>\n\nVERSIONS:")
++	for version := range versions {
++		fmt.Println("\t", version)
++	}
++}
++
+ func main() {
++	versions := map[string]func(int64) [][]int{
++		"original": original,
++		"fastest":  fastest,
++	}
++
++	if len(os.Args) != 2 {
++		usage(versions)
++		return
++	}
++
++	version, ok := versions[os.Args[1]]
++	if !ok {
++		fmt.Printf("unknown version: %s\n\n", version)
++		usage(versions)
++		return
++	}
++
+ 	start := time.Now()
+ 	fmt.Println("Start")
+ 
+-	list := fastest(time.Now().UnixNano())
++	list := version(time.Now().UnixNano())
+ 
+ 	d := time.Now().Sub(start)
+ 	fmt.Println("End ", len(list), " ", d.Seconds())
++
++	for i := 0; i < 10; i++ {
++		j := rand.Intn(len(list))
++		fmt.Println(j, list[j])
++	}
+ }
+ 
+ func original(seed int64) [][]int {
