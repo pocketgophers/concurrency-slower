@@ -1,0 +1,14 @@
+diff --git a/main_test.go b/main_test.go
+index 1a3a611..29f66dd 100644
+--- a/main_test.go
++++ b/main_test.go
+@@ -48,3 +48,9 @@ func TestLottoNumbers(t *testing.T) {
+ 		t.Errorf("ExKurtosis not within %v of uniform (%v): %v", maxDiff, uniform.ExKurtosis(), exk)
+ 	}
+ }
++
++func BenchmarkLottoNumbers(b *testing.B) {
++	for i := 0; i < b.N; i++ {
++		lottoNumbers(numberToGenerate)
++	}
++}

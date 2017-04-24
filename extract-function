@@ -1,31 +1,36 @@
 diff --git a/main.go b/main.go
-index 57433a5..633a1a7 100644
+index 57433a5..f6283fb 100644
 --- a/main.go
 +++ b/main.go
-@@ -7,11 +7,19 @@ import (
+@@ -7,13 +7,25 @@ import (
  	"time"
  )
  
 -var list = [][]int{}
--
++const (
++	numberToGenerate = 1000000
++)
+ 
  func main() {
 +	start := time.Now()
 +	fmt.Println("Start")
 +
-+	list := original(time.Now().UnixNano())
++	list := lottoNumbers(numberToGenerate)
  
--	rand.Seed(time.Now().UnixNano())
 +	d := time.Now().Sub(start)
 +	fmt.Println("End ", len(list), " ", d.Seconds())
 +}
 +
-+func original(seed int64) [][]int {
++func lottoNumbers(n int) [][]int {
 +	var list = [][]int{}
-+	rand.Seed(seed)
+ 	rand.Seed(time.Now().UnixNano())
  
- 	rec := make(chan []int, 10000000)
+-	rec := make(chan []int, 10000000)
++	rec := make(chan []int, n)
  
-@@ -21,8 +29,6 @@ func main() {
+ 	go func(c chan []int) {
+ 		for {
+@@ -21,21 +33,19 @@ func main() {
  		}
  	}(rec)
  
@@ -34,7 +39,12 @@ index 57433a5..633a1a7 100644
  	var wg sync.WaitGroup
  	for i := 0; i < 10; i++ {
  		wg.Add(1)
-@@ -34,8 +40,8 @@ func main() {
+ 		func() {
+ 			defer wg.Done()
+-			for i := 0; i < 1000000; i++ {
++			for i := 0; i < n; i++ {
+ 				add(rec)
+ 			}
  		}()
  	}
  	wg.Wait()

@@ -1,0 +1,56 @@
+diff --git a/main_test.go b/main_test.go
+new file mode 100644
+index 0000000..ba232b5
+--- /dev/null
++++ b/main_test.go
+@@ -0,0 +1,50 @@
++package main
++
++import (
++	"math"
++	"testing"
++
++	"github.com/gonum/stat"
++	"github.com/gonum/stat/distuv"
++)
++
++func within(a, b, maxDiff float64) bool {
++	absDiff := math.Abs(a - b)
++	return absDiff < maxDiff
++}
++
++func TestLottoNumbers(t *testing.T) {
++	maxDiff := 0.01
++	uniform := distuv.Uniform{
++		Max: 49,
++	}
++
++	list := lottoNumbers(numberToGenerate)
++
++	if len(list) != numberToGenerate {
++		t.Errorf("len(list) is %v, not %v", len(list), numberToGenerate)
++	}
++
++	// number of random numbers used
++	x := make([]float64, numberToGenerate*7)
++	for i := range x {
++		j := i / 7
++		k := i % 7
++		x[i] = float64(list[j][k])
++	}
++
++	stdDev := stat.StdDev(x, nil)
++	if !within(stdDev, uniform.StdDev(), maxDiff) {
++		t.Errorf("std dev not within %v of uniform (%v): %v", maxDiff, uniform.StdDev(), stdDev)
++	}
++
++	skew := stat.Skew(x, nil)
++	if !within(skew, uniform.Skewness(), maxDiff) {
++		t.Errorf("skewness not within %v of uniform (%v): %v", maxDiff, uniform.Skewness(), skew)
++	}
++
++	exk := stat.ExKurtosis(x, nil)
++	if !within(exk, uniform.ExKurtosis(), maxDiff) {
++		t.Errorf("ExKurtosis not within %v of uniform (%v): %v", maxDiff, uniform.ExKurtosis(), exk)
++	}
++}

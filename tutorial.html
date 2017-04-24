@@ -1,5 +1,4 @@
-<h1>/Users/alaster/src/concurreny-slower</h1>
-
+<h1>Balancing Concurrent Overhead With Parallel Performance</h1>
 
 {{removeAll .SiteDir}}
 {{mkdirAll .SiteDir}}
@@ -8,89 +7,129 @@
 {{cd .BuildDir}}
 {{runNoOutput "git" "init"}}
 
+<blockquote>
+<p>WTH? Shouldn’t this be faster? - <a href="https://forum.golangbridge.org/t/concurrency-slower/5002" title="Concurrency slower?">Concurrency slower?</a></p>
+</blockquote>
 
-<h2>original</h2>
+<p>This started as a simple exercise to learn concurrency in Go. The exercise had a simple premise:
+	<ul>
+		<li>create a list of 1,000,000 lotto numbers</li>
+		<li>a lotto number is a list of 7 random integers</li>
+	</ul>
+</p>
+
+<p>But instead of fast running goodness, it ended slower than it started:
+	<blockquote>
+	<ul>
+		<li>Initially on my system it took 8.5 s (i7)</li>
+		<li>Giving the channel such a large buffer reduces the used time to ~4.5 s</li>
+		<li><code>make</code>ing the array list with the final size increases the used time by ~20%</li>
+		<li>Running as a go routine increases the used time to ~13 s - WTH? Shouldn&#39;t this be faster?</li>
+	</ul>
+	</blockquote>
+</p>
+
+<p>Go's concurrency primatives are light-weight. However, they are not free. Since there is a cost, there needs to be a return on that investment. For this exercise, the expected return is a faster runtime. Balancing the costs and the benefits is the real trick.</p>
+
+<!-- <p>Follow along as I show one method, and the tools used, to balance the execution costs of concurrency with the benefits of reduced runtime through a parallel implementation.</p> -->
+
+<!-- <p>NOTE: The process I describe is not the actual process I followed. It does the describe all the failed attempts I actually made. That would be extremely tedious to read (and even more so to write). However, the process shown <em>does</em> include the methods that indicate the step was productive</p> -->
+
+<h2>The Posted Code</h2>
 {{patch "original" "original"}}
 
-<p>
-</p>
-
+<p>Let's start with what was posted:</p>
 
 {{file "main.go"}}
 
-
-<h2>move to function</h2>
-{{patch "move-to-function" "move to function"}}
-
-<p>
+<p>This code has some good things going for it:
+	<ul>
+		<li>Easy to try out improvments because timing checks are built in.</li>
+		<li>Visual test, <code>len(list)</code>, indicates if the program worked or not</li>
+	</ul>
 </p>
 
+<p>However, it also has some problems as can be shown by running it:</p>
+
+{{run "go" "run" "main.go"}}
+
+<p>Notice that <code>len(list)</code> is not the expected 1,000,000. <a href="https://forum.golangbridge.org/t/concurrency-slower/5002/3?u=nathankerr">Another posted version</a> had the right <code>len(list)</code>, but only one of the elements was set (1M times).</p>
+
+<p>Let's use Go's built-in testing and benchmarking tools to improve the code.</p>
+
+<h2>Extract to Function</h2>
+{{patch "extract-function" "extract function"}}
+
+<p>The first step is to isolate the code to be tested and benchmarked.</p>
+
+<ul>
+	<li>extract to function</li>
+	<li>remove globals</li>
+	<li>remove magic numbers</li>
+</ul>
 
 {{file "main.go"}}
 
+<p><code>numberToGenerate</code> is a global constant because I want to make sure all instances of that number are the same, and it is the only parameter of this program to tweak.</p>
 
-<h2>fastest possible?</h2>
-{{patch "fastest-possible" "fastest possible?"}}
+<h2>Testing with <code>go test</code></h2>
+{{patch "testing" "testing"}}
 
-<p>
+<p>Testing results based on random numbers is really hard. The test suite for <a href="https://golang.org/pkg/math/rand"><code>math/rand</code></a> includes a statistical analysis of the generated numbers.</p>
+
+<p>In this case, testing will be done from two directions:
+	<ol>
+		<li>the correct number of lotto numbers was generated</li>
+		<li>the generated numbers have a <a href="https://en.wikipedia.org/wiki/Uniform_distribution_%28continuous%29">uniform distribution</a>, just like the RNG.</li>
+	</ol>
 </p>
 
-
-{{file "main.go"}}
-
-
-<h2>switching versions</h2>
-{{patch "switching-versions" "switching versions"}}
-
-<p>
-</p>
-
-
-{{file "main.go"}}
-
-
-<h2>a correct serial version</h2>
-{{patch "a-correct-serial-version" "a correct serial version"}}
-
-<p>
-</p>
-
-
-{{file "main.go"}}
-
-
-<h2>testing the oracle</h2>
-{{patch "testing-the-oracle" "testing the oracle"}}
-
-<p>
-</p>
-
+<p>Since this testing is done as an exercise, and I don't really know what the properties of lottery numbers should be, I picked a few attributes of distributions to compare against expected values:
+<ul>
+	<li><a href="https://en.wikipedia.org/wiki/Standard_deviation">standard deviation</a></li>
+	<li><a href="https://en.wikipedia.org/wiki/Skewness">Skewness</a></li>
+	<li><a href="https://en.wikipedia.org/wiki/Excess_kurtosis">Ex. kurtosis</a></li>
+</ul>
 
 {{file "main_test.go"}}
 
+{{run "go" "test"}}
 
-<h2>test the other versions</h2>
-{{patch "test-the-other-versions" "test the other versions"}}
+<p>Here we see that the some of the parts of the test failed. The parts that fail will change between runs because <code>lottoNumbers</code> does not produce consistent results.</p>
 
-<p>
-</p>
+<h1>A Serial Version</h1>
+{{patch "serial" "serial"}}
 
-
-{{file "main_test.go"}}
-
-
-<h2>parallel before needing to revert</h2>
-{{patch "parallel-before-needing-to-revert" "parallel before needing to revert"}}
-
-<p>
-</p>
-
+<p>Before getting to benchmarking, let's get a version that consitently passes the tests. Since the concurrency used here complicates the design instead of simplifing it, a purely serial version that is correct is a better starting point. I tried to write what the poster could have written.</p>
 
 {{file "main.go"}}
 
+{{run "go" "run" "main.go"}}
+
+{{run "go" "test"}}
+
+Note that this serial version is much faster. The speedup was achieved by not doing the additional work the original verison did. Also, the tests pass.
+
+<h2>Benchmarks</h2>
+{{patch "benchmark" "benchmark"}}
+
 {{file "main_test.go"}}
 
-{{file "rand/rand.go"}}
+{{run "go" "test" "-bench=."}}
 
+<p>The output shows the benchmark, the number of times the benchmark loop ran (i.e., <code>b.N</code>), and the average time for each run (i.e., total_time/b.N)</p>
 
+<p>NOTE: go will run the entire test suite before running the benchmarks. This is helpful to ensure the whatever you are benchmarking still passes the tests.</p>
 
+<p>The benchmark was only run one time. This is because go defaults to running enough times to exceed a time limit, which defaults to 1 second. The accuracy of the reported numbers improves with the number of times the benchmark is ran. Increasing time time to 1 minute increases the number of times <code>lottoNumbers</code> is ran</p>
+
+{{run "go" "test" "-bench=." "-benchtime=1m"}}
+
+<hr>
+<pre>TODO
+- figure out how to save benchmark results
+- improved serial version (-benchmem, reduce allocs, compare with benchstat)
+- msu
+
+- increase numberToGenerate to give enough to work with
+</pre>

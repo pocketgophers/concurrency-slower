@@ -1,0 +1,64 @@
+diff --git a/main.go b/main.go
+index f6283fb..34ffca5 100644
+--- a/main.go
++++ b/main.go
+@@ -3,7 +3,6 @@ package main
+ import (
+ 	"fmt"
+ 	"math/rand"
+-	"sync"
+ 	"time"
+ )
+ 
+@@ -22,40 +21,20 @@ func main() {
+ }
+ 
+ func lottoNumbers(n int) [][]int {
+-	var list = [][]int{}
++	list := make([][]int, 0, n)
+ 	rand.Seed(time.Now().UnixNano())
+ 
+-	rec := make(chan []int, n)
+-
+-	go func(c chan []int) {
+-		for {
+-			list = append(list, <-c)
+-		}
+-	}(rec)
+-
+-	var wg sync.WaitGroup
+-	for i := 0; i < 10; i++ {
+-		wg.Add(1)
+-		func() {
+-			defer wg.Done()
+-			for i := 0; i < n; i++ {
+-				add(rec)
+-			}
+-		}()
++	for i := 0; i < n; i++ {
++		list = append(list, []int{
++			rand.Intn(49),
++			rand.Intn(49),
++			rand.Intn(49),
++			rand.Intn(49),
++			rand.Intn(49),
++			rand.Intn(49),
++			rand.Intn(49),
++		})
+ 	}
+-	wg.Wait()
+ 
+ 	return list
+ }
+-
+-func add(c chan []int) {
+-	c <- []int{
+-		rand.Intn(49),
+-		rand.Intn(49),
+-		rand.Intn(49),
+-		rand.Intn(49),
+-		rand.Intn(49),
+-		rand.Intn(49),
+-		rand.Intn(49),
+-	}
+-}
