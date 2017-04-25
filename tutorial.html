@@ -36,7 +36,8 @@
 <!-- <p>NOTE: The process I describe is not the actual process I followed. It does the describe all the failed attempts I actually made. That would be extremely tedious to read (and even more so to write). However, the process shown <em>does</em> include the methods that indicate the step was productive</p> -->
 
 <h2>The Posted Code</h2>
-{{patch "original" "original"}}
+{{apply "original"}}
+{{commit "original"}}
 
 <p>Let's start with what was posted:</p>
 
@@ -58,7 +59,8 @@
 <p>Let's use Go's built-in testing and benchmarking tools to improve the code.</p>
 
 <h2>Extract to Function</h2>
-{{patch "extract-function" "extract function"}}
+{{apply "extract-function"}}
+{{commit "extract function"}}
 
 <p>The first step is to isolate the code to be tested and benchmarked.</p>
 
@@ -73,7 +75,8 @@
 <p><code>numberToGenerate</code> is a global constant because I want to make sure all instances of that number are the same, and it is the only parameter of this program to tweak.</p>
 
 <h2>Testing with <code>go test</code></h2>
-{{patch "testing" "testing"}}
+{{apply "testing"}}
+{{commit "testing"}}
 
 <p>Testing results based on random numbers is really hard. The test suite for <a href="https://golang.org/pkg/math/rand"><code>math/rand</code></a> includes a statistical analysis of the generated numbers.</p>
 
@@ -98,7 +101,8 @@
 <p>Here we see that the some of the parts of the test failed. The parts that fail will change between runs because <code>lottoNumbers</code> does not produce consistent results.</p>
 
 <h1>A Serial Version</h1>
-{{patch "serial" "serial"}}
+{{apply "serial"}}
+{{commit "serial"}}
 
 <p>Before getting to benchmarking, let's get a version that consitently passes the tests. Since the concurrency used here complicates the design instead of simplifing it, a purely serial version that is correct is a better starting point. I tried to write what the poster could have written.</p>
 
@@ -111,25 +115,68 @@
 Note that this serial version is much faster. The speedup was achieved by not doing the additional work the original verison did. Also, the tests pass.
 
 <h2>Benchmarks</h2>
-{{patch "benchmark" "benchmark"}}
+{{apply "benchmark"}}
+{{commit "benchmark"}}
 
 {{file "main_test.go"}}
 
-{{run "go" "test" "-bench=."}}
+{{run "go test -bench=. -count 5 | tee serial.txt"}}
 
 <p>The output shows the benchmark, the number of times the benchmark loop ran (i.e., <code>b.N</code>), and the average time for each run (i.e., total_time/b.N)</p>
 
 <p>NOTE: go will run the entire test suite before running the benchmarks. This is helpful to ensure the whatever you are benchmarking still passes the tests.</p>
 
-<p>The benchmark was only run one time. This is because go defaults to running enough times to exceed a time limit, which defaults to 1 second. The accuracy of the reported numbers improves with the number of times the benchmark is ran. Increasing time time to 1 minute increases the number of times <code>lottoNumbers</code> is ran</p>
+<h2>Parallel</h2>
+{{apply "parallel"}}
 
-{{run "go" "test" "-bench=." "-benchtime=1m"}}
+{{file "main.go"}}
+
+{{run "go test -bench=. -count 5 | tee parallel.txt"}}
+
+{{benchstat "serial.txt parallel.txt"}}
+
+{{commit "parallel"}}
+
+<h2>Finding Blocking Operations</h2>
+
+{{run "go test -blockprofile block.pprof"}}
+{{run "go tool pprof -list=lottoNumbers ./concurrency-slower.test block.pprof"}}
+
+{{commit "blocking-operations"}}
+
+<h2>Non-Blocking Rand</h2>
+{{apply "non-blocking-rand"}}
+
+{{file "main.go"}}
+
+{{run "go test -bench=. -count 5 | tee non-blocking-rand.txt"}}
+
+{{benchstat "serial.txt non-blocking-rand.txt"}}
+
+{{commit "non-blocking-rand"}}
+
+<h2>Reducing allocations</h2>
+
+{{run "go test -bench=. -count 5 -benchmem| tee non-blocking-rand-mem.txt"}}
+
+{{apply "reduce-allocs"}}
+
+{{run "go test -bench=. -count 5 -benchmem| tee reduce-allocs.txt"}}
+
+{{benchstat "non-blocking-rand-mem.txt reduce-allocs.txt"}}
+
+{{commit "reduce allocs"}}
+
+<h2>Success</h2>
+
+{{benchstat "serial.txt reduce-allocs.txt"}}
 
 <hr>
 <pre>TODO
-- figure out how to save benchmark results
-- improved serial version (-benchmem, reduce allocs, compare with benchstat)
 - msu
+- figure out how to sanitize pprof output
+
+- try reducing allocations by allocating an array for every int, filling it, then slicing it into parts
 
 - increase numberToGenerate to give enough to work with
 </pre>

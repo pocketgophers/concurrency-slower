@@ -8,7 +8,7 @@ index 57433a5..f6283fb 100644
  
 -var list = [][]int{}
 +const (
-+	numberToGenerate = 1000000
++	numberToGenerate = 5000000
 +)
  
  func main() {

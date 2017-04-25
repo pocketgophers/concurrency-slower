@@ -1,0 +1,27 @@
+diff --git a/main.go b/main.go
+index 34ffca5..59fe138 100644
+--- a/main.go
++++ b/main.go
+@@ -21,11 +21,11 @@ func main() {
+ }
+ 
+ func lottoNumbers(n int) [][]int {
+-	list := make([][]int, 0, n)
++	list := make([][]int, n)
+ 	rand.Seed(time.Now().UnixNano())
+ 
+ 	for i := 0; i < n; i++ {
+-		list = append(list, []int{
++		list[i] = []int{
+ 			rand.Intn(49),
+ 			rand.Intn(49),
+ 			rand.Intn(49),
+@@ -33,7 +33,7 @@ func lottoNumbers(n int) [][]int {
+ 			rand.Intn(49),
+ 			rand.Intn(49),
+ 			rand.Intn(49),
+-		})
++		}
+ 	}
+ 
+ 	return list
