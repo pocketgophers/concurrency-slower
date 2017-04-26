@@ -29,7 +29,7 @@
 	</blockquote>
 </p>
 
-<p>Go's concurrency primatives are light-weight. However, they are not free. Since there is a cost, there needs to be a return on that investment. For this exercise, the expected return is a faster runtime. Balancing the costs and the benefits is the real trick.</p>
+<p>Go's concurrency primitives are light-weight. However, they are not free. Since there is a cost, there needs to be a return on that investment. For this exercise, the expected return is a faster runtime. Balancing the costs and the benefits is the real trick.</p>
 
 <!-- <p>Follow along as I show one method, and the tools used, to balance the execution costs of concurrency with the benefits of reduced runtime through a parallel implementation.</p> -->
 
@@ -45,7 +45,7 @@
 
 <p>This code has some good things going for it:
 	<ul>
-		<li>Easy to try out improvments because timing checks are built in.</li>
+		<li>Easy to try out improvements because timing checks are built in.</li>
 		<li>Visual test, <code>len(list)</code>, indicates if the program worked or not</li>
 	</ul>
 </p>
@@ -98,13 +98,13 @@
 
 {{run "go" "test"}}
 
-<p>Here we see that the some of the parts of the test failed. The parts that fail will change between runs because <code>lottoNumbers</code> does not produce consistent results.</p>
+<p>Here we see that the some parts of the test failed. The parts that fail will change between runs because <code>lottoNumbers</code> does not produce consistent results.</p>
 
 <h1>A Serial Version</h1>
 {{apply "serial"}}
 {{commit "serial"}}
 
-<p>Before getting to benchmarking, let's get a version that consitently passes the tests. Since the concurrency used here complicates the design instead of simplifing it, a purely serial version that is correct is a better starting point. I tried to write what the poster could have written.</p>
+<p>Before getting to benchmarking, let's get a version that consistently passes the tests. Since the concurrency used here complicates the design instead of simplifying it, a purely serial version that is correct is a better starting point. I tried to reproduce the serial version the poster started with.</p>
 
 {{file "main.go"}}
 
@@ -112,19 +112,24 @@
 
 {{run "go" "test"}}
 
-Note that this serial version is much faster. The speedup was achieved by not doing the additional work the original verison did. Also, the tests pass.
+<p>This version is much faster. The speedup was achieved by not doing the extra work the original version did. Also, the tests pass.</p>
 
 <h2>Benchmarks</h2>
 {{apply "benchmark"}}
-{{commit "benchmark"}}
+
+<p>Go benchmarks are quick to get started with: loop `b.N` times, calling the function to be benchmarked each iteration.</p>
 
 {{file "main_test.go"}}
 
-{{run "go test -bench=. -count 5 | tee serial.txt"}}
+<p>Benchmarks are ran with <code>go test</code>.</p>
+
+{{run "go test -bench=. -benchmem -count 5 | tee serial.txt"}}
 
 <p>The output shows the benchmark, the number of times the benchmark loop ran (i.e., <code>b.N</code>), and the average time for each run (i.e., total_time/b.N)</p>
 
 <p>NOTE: go will run the entire test suite before running the benchmarks. This is helpful to ensure the whatever you are benchmarking still passes the tests.</p>
+
+{{commit "benchmark"}}
 
 <h2>Parallel</h2>
 {{apply "parallel"}}
@@ -175,8 +180,14 @@ Note that this serial version is much faster. The speedup was achieved by not do
 <pre>TODO
 - msu
 - figure out how to sanitize pprof output
+- file should only display the file, diffs are hard to format and I want to avoid that for now. Also the automatic switching won't let me show the whole thing when the diff is complicated.
 
-- try reducing allocations by allocating an array for every int, filling it, then slicing it into parts
+published repo:
+- source branch for tutorial source
+- 2017-04-2x branch for released version
+- set dated branch as default branch
+- readme in all branches explaining the organization
 
-- increase numberToGenerate to give enough to work with
+share:
+- I used go's testing, benchmarking, and blockprofile tools to show an alternate way to make the same progress. link
 </pre>
