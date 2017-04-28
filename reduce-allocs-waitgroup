@@ -1,0 +1,13 @@
+diff --git a/main.go b/main.go
+index bb803fa..f835067 100644
+--- a/main.go
++++ b/main.go
+@@ -27,7 +27,7 @@ func lottoNumbers(n int) [][]int {
+ 	all := make([]int, total)
+ 	list := make([][]int, n)
+ 	seed := time.Now().UnixNano()
+-	var wg sync.WaitGroup
++	wg := &sync.WaitGroup{}
+ 	workers := runtime.GOMAXPROCS(-1) // one for each proc
+ 
+ 	for i := 0; i < workers; i++ {

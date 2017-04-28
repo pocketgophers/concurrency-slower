@@ -2,7 +2,11 @@ This is the source code that generates the tu
 
 ## TODO
 
-- msu
+- don't benchmem? would focus only on time for benchmarks, storyline.
+- gitignore for build repo
+- readme for build repo
+- checklist for build repo
+
 - sanitize pprof output
 - title
 - computer specs, versions, etc.

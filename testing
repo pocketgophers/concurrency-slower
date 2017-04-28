@@ -73,7 +73,7 @@ index 0000000..a3410e4
 +	}
 +
 +	// check distribution properties
-+	maxDiff := 0.01
++	maxDiff := 0.02
 +	uniform := distuv.Uniform{
 +		Max: 49,
 +	}

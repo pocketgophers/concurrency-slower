@@ -245,7 +245,9 @@ Where <code>begin</code> and <code>end</code> are the part of the work to be acc
 
 {{file "main.go"}}
 
-{{run "go test -bench=. -benchmem -count 5 | tee non-blocking-rand.txt"}}
+<p>As the time/op becomes smaller, more runs are needed to increase accuracy.</p>
+
+{{run "go test -bench=. -benchmem -count 10 | tee non-blocking-rand.txt"}}
 
 {{benchstat "serial.txt non-blocking-rand.txt"}}
 
@@ -253,13 +255,65 @@ Where <code>begin</code> and <code>end</code> are the part of the work to be acc
 
 {{commit "non-blocking-rand"}}
 
-<h2>Reducing allocations</h2>
+<h2>Reducing Allocations</h2>
 
-{{apply "reduce-allocs"}}
+<p>Another thing to notice is the 1.00M allocations per operation. Go allocates memory on the stack or the heap. Stack memory is managed at compile time, meaning there is no additional runtime cost. Heap memory, on the other hand, is managed at runtime. This includes deciding where on the heap to allocate the memory and garbage collection when that allocated memory is no longer needed. It is because of this addition cost that <code>-benchmem</code> only lists heap allocations.</p>
+
+<p>Go tries to keep everything on the stack, using escape analysis to figure out what must be on the heap. Compiling with <code>-gcflags=-m</code> displays the results of the escape analysis process:</p>
+
+{{run "go build -gcflags=-m"}}
+
+<p>As with blocking operations, some variables need to be on the heap. The goal is to find the things that escape and rewrite the code so it does not need to.</p>
+
+<p>Since one million is the same number as the number of lotto number to generate, most of the allocations must happen on:
+<pre><code>list[i] = []int{
+	r.Intn(49),
+	r.Intn(49),
+	r.Intn(49),
+	r.Intn(49),
+	r.Intn(49),
+	r.Intn(49),
+	r.Intn(49),
+}</code></pre>
+The escape analysis confirms this with <code>[]int literal escapes to heap</code>.
+</p>
+
+<blockquote>A slice is a descriptor of an array segment. It consists of a pointer to the array, the length of the segment, and its capacity (the maximum length of the segment). - <a href="https://blog.golang.org/go-slices-usage-and-internals">Go Slices: usage and internals</a></blockquote>
+
+<p>Making a new slice also makes the underlying array. Since the slices are required, we can instead remove the allocation of the underlying arrays by preallocating enough space for all the random numbers we need and then slicing that array into the lotto numbers.</p>
+
+{{apply "reduce-allocs-slices"}}
+{{commit "reduce-allocs-slices"}}
 
 {{file "main.go"}}
 
-{{run "go test -bench=. -count 5 -benchmem| tee reduce-allocs.txt"}}
+<p>The <code>[]int</code> literal no longer escapes to heap and, as a nice side benefit, the repetition of <code>r.Intn(49)</code> is removed.</p>
+
+<p>The next thing to deal with is the <code>WaitGroup</code>. It needs to be on the heap because it is accessed from different goroutines. What doesn't need to be on the heap are the many references to it. This can be fixed by initially getting a pointer to it.</p>
+
+{{apply "reduce-allocs-waitgroup"}}
+{{commit "reduce-allocs-waitgroup"}}
+
+<p>The function and <code>&amp;rand.Rand</code> literal escapes can be removed by moving the creation of <code>r</code> into the closer and then converting the closure into a separate function.</p>
+
+{{apply "reduce-allocs-closure"}}
+{{commit "reduce-allocs-closure"}}
+
+{{file "main.go"}}
+
+{{run "go build -gcflags=-m"}}
+
+<p>The remaining escapes are required:
+<dl>
+	<dt><code>all</code></dt><dd>accessed by concurrent <code>lottoNumberWorker</code>s</dd>
+	<dt><code>list</code></dt><dd>accessed by calling function after return</dd>
+	<dt><code>wg</code></dt><dd>accessed by concurrent <code>lottoNumberWorker</code>s</dd>
+</dl>
+</p>
+
+<p>Now to see the fruits of our labor</p>
+
+{{run "go test -bench=. -count 10 -benchmem| tee reduce-allocs.txt"}}
 
 {{benchstat "non-blocking-rand.txt reduce-allocs.txt"}}
 
