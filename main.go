@@ -39,16 +39,8 @@ func lottoNumbers(n int) [][]int {
 			end += n % workers
 		}
 
-		r := rand.New(rand.NewSource(seed + int64(i)))
-
 		wg.Add(1)
-		go func() {
-			defer wg.Done()
-
-			for i := begin; i < end; i++ {
-				all[i] = r.Intn(49)
-			}
-		}()
+		go lottoNumbersWorker(wg, seed+int64(i), all, begin, end)
 	}
 
 	wg.Wait()
@@ -58,4 +50,14 @@ func lottoNumbers(n int) [][]int {
 	}
 
 	return list
+}
+
+func lottoNumbersWorker(wg *sync.WaitGroup, seed int64, all []int, begin, end int) {
+	defer wg.Done()
+
+	r := rand.New(rand.NewSource(seed))
+
+	for i := begin; i < end; i++ {
+		all[i] = r.Intn(49)
+	}
 }
