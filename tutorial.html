@@ -1,3 +1,4 @@
+{{version}}
 <h1>Concurrency Slower?</h1>
 
 {{removeAll .SiteDir}}
@@ -9,7 +10,6 @@
 {{runNoOutput "git checkout -b" (.Now.Format "2006-01-02")}}
 {{copy "build-gitignore" .BuildDir ".gitignore"}}
 {{copy "build-readme.md" .BuildDir "readme.md"}}
-{{copy "build-checklist.md" .BuildDir "checklist.md"}}
 {{commit "initial"}}
 
 <blockquote>
@@ -86,7 +86,7 @@ Each commit in the downloaded git repository corresponds with the progress made 
 
 {{file "main.go"}}
 
-<p>A quick run shows that refactoring did not break the code:</p>
+<p>A quick run shows the code works as it did before:</p>
 
 {{run "go run main.go"}}
 
@@ -143,7 +143,7 @@ Each commit in the downloaded git repository corresponds with the progress made 
 
 {{run "go" "run" "main.go"}}
 
-{{run "go" "test" "-count 5"}}
+{{run "go" "test"}}
 
 <p>This version is much faster. The speedup was achieved by not doing the extra work the original version did. Also, the tests passed 5 times..</p>
 
@@ -156,9 +156,9 @@ Each commit in the downloaded git repository corresponds with the progress made 
 
 <p>Benchmarks are ran with <code>go test</code>. I save the output using <a href="https://en.wikipedia.org/wiki/Tee_(command)"><code>tee</code></a> for later comparison.</p>
 
-{{run "go test -bench=. -benchmem -count 5 | tee serial.txt"}}
+{{run "go test -bench=. -benchmem -count 10 | tee serial.txt"}}
 
-<p>The output shows the benchmark, the number of times the benchmark loop ran (i.e., <code>b.N</code>), and the average time for each run (i.e., <code>total_time/b.N</code>)</p>
+<p>The output shows the benchmark, the number of times the benchmark loop ran (i.e., <code>b.N</code>), the average time for each run (i.e., <code>total_time/b.N</code>), the average bytes allocated each run, and the average number of allocatons for each run.</p>
 
 <p>Go will run the test suite before running the benchmarks. This is helpful to ensure the whatever you are benchmarking still passes the tests. The benchmark (and tests) are run 5 times to create enough data for later statistical analysis.</p>
 
@@ -224,7 +224,7 @@ Where <code>begin</code> and <code>end</code> are the part of the work to be acc
 
 <p>Since the race detector reduces performance, I don't use it when benchmarking.</p>
 
-{{run "go test -bench=. -count 5 | tee parallel.txt"}}
+{{run "go test -bench=. -count 10 | tee parallel.txt"}}
 
 <p>To compare benchmark results and decide if the differences are significant (i.e., <code>p &lt;= 0.05</code>), I use <a href="https://godoc.org/golang.org/x/perf/cmd/benchstat">benchstat</a>.</p>
 
@@ -259,8 +259,6 @@ Where <code>begin</code> and <code>end</code> are the part of the work to be acc
 {{apply "non-blocking-rand"}}
 
 {{file "main.go"}}
-
-<p>As the time/op becomes smaller, more runs are needed to increase accuracy.</p>
 
 {{run "go test -bench=. -benchmem -count 10 | tee non-blocking-rand.txt"}}
 
@@ -320,9 +318,9 @@ The escape analysis confirms this with <code>[]int literal escapes to heap</code
 
 <p>The remaining escapes are required:
 <dl>
-	<dt><code>all</code></dt><dd>accessed by concurrent <code>lottoNumberWorker</code>s</dd>
-	<dt><code>list</code></dt><dd>accessed by calling function after return</dd>
-	<dt><code>wg</code></dt><dd>accessed by concurrent <code>lottoNumberWorker</code>s</dd>
+	<dt><code>make([]int, total)</code></dt><dd><code>all</code>, accessed by concurrent <code>lottoNumberWorker</code>s</dd>
+	<dt><code>make([][]int, n)</code></dt><dd><code>list</code>, accessed by calling function after return</dd>
+	<dt><code>&amp;sync.WaitGroup literal</code></dt><dd><code>wg</code>, accessed by concurrent <code>lottoNumberWorker</code>s</dd>
 </dl>
 </p>
 
