@@ -1,5 +1,5 @@
 diff --git a/main.go b/main.go
-index f6283fb..34ffca5 100644
+index ff09faf..34ffca5 100644
 --- a/main.go
 +++ b/main.go
 @@ -3,7 +3,6 @@ package main
@@ -10,31 +10,29 @@ index f6283fb..34ffca5 100644
  	"time"
  )
  
-@@ -22,40 +21,20 @@ func main() {
+@@ -22,36 +21,20 @@ func main() {
  }
  
  func lottoNumbers(n int) [][]int {
--	var list = [][]int{}
-+	list := make([][]int, 0, n)
- 	rand.Seed(time.Now().UnixNano())
- 
--	rec := make(chan []int, n)
--
--	go func(c chan []int) {
--		for {
--			list = append(list, <-c)
--		}
--	}(rec)
--
+-	var parallelCount = 10
+-	var iterations = n/parallelCount
+-	var list = make([][]int, parallelCount*iterations)
 -	var wg sync.WaitGroup
--	for i := 0; i < 10; i++ {
--		wg.Add(1)
--		func() {
+-
+-	wg.Add(parallelCount)
+-	for i := 0; i < parallelCount; i++ {
+-		go func() {
 -			defer wg.Done()
--			for i := 0; i < n; i++ {
--				add(rec)
+-
+-			r := rand.New(rand.NewSource(time.Now().UnixNano()))
+-
+-			for i := 0; i < iterations; i++ {
+-				list[parallelCount*iterations-1] = add(r)
 -			}
 -		}()
++	list := make([][]int, 0, n)
++	rand.Seed(time.Now().UnixNano())
++
 +	for i := 0; i < n; i++ {
 +		list = append(list, []int{
 +			rand.Intn(49),
@@ -51,14 +49,14 @@ index f6283fb..34ffca5 100644
  	return list
  }
 -
--func add(c chan []int) {
--	c <- []int{
--		rand.Intn(49),
--		rand.Intn(49),
--		rand.Intn(49),
--		rand.Intn(49),
--		rand.Intn(49),
--		rand.Intn(49),
--		rand.Intn(49),
+-func add(r *rand.Rand) []int {
+-	return []int{
+-		r.Intn(49),
+-		r.Intn(49),
+-		r.Intn(49),
+-		r.Intn(49),
+-		r.Intn(49),
+-		r.Intn(49),
+-		r.Intn(49),
 -	}
 -}
