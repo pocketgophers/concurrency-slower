@@ -1,16 +1,7 @@
 # Concurrency Slower?
 
-This is the source code for the tutorial. The code associated with a specific build is in a dated branch.
+This is the source used to build https://pocketgophers.com/concurrency-slower
 
-## TODO
+The code associated with a specific build is in a dated branch, the latest version of which is the default branch.
 
-- computer specs, versions, etc.
-
-published repo:
-- source branch for tutorial source
-- 2017-04-2x branch for released version
-- set dated branch as default branch
-- readme in all branches explaining the organization
-
-share:
-- I used go's testing, benchmarking, and blockprofile tools to show an alternate way to make the same progress. link
+The tool used to build this tutorial has not yet been released.
