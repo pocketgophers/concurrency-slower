@@ -1,16 +1,10 @@
-This is the source code that generates the tu
+# Concurrency Slower?
+
+This is the source code for the tutorial. The code associated with a specific build is in a dated branch.
 
 ## TODO
 
-- don't benchmem? would focus only on time for benchmarks, storyline.
-- gitignore for build repo
-- readme for build repo
-- checklist for build repo
-
-- sanitize pprof output
-- title
 - computer specs, versions, etc.
-- after figuring out the title, some changes will be needed. e.g., finding blocking operations
 
 published repo:
 - source branch for tutorial source

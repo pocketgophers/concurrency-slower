@@ -1,4 +1,4 @@
-<h1>Balancing Concurrent Overhead With Parallel Performance</h1>
+<h1>Concurrency Slower?</h1>
 
 {{removeAll .SiteDir}}
 {{mkdirAll .SiteDir}}
@@ -6,6 +6,11 @@
 {{mkdirAll .BuildDir}}
 {{cd .BuildDir}}
 {{runNoOutput "git" "init"}}
+{{runNoOutput "git checkout -b" (.Now.Format "2006-01-02")}}
+{{copy "build-gitignore" .BuildDir ".gitignore"}}
+{{copy "build-readme.md" .BuildDir "readme.md"}}
+{{copy "build-checklist.md" .BuildDir "checklist.md"}}
+{{commit "initial"}}
 
 <blockquote>
 WTH? Shouldn’t this be faster? - <a href="https://forum.golangbridge.org/t/concurrency-slower/5002" title="Concurrency slower?">Concurrency slower?</a>
@@ -115,6 +120,8 @@ WTH? Shouldn’t this be faster? - <a href="https://forum.golangbridge.org/t/con
 {{commit "other-version"}}
 
 {{file "main.go"}}
+
+{{run "go run main.go"}}
 
 {{run "go test"}}
 
@@ -320,5 +327,18 @@ The escape analysis confirms this with <code>[]int literal escapes to heap</code
 {{commit "reduce allocs"}}
 
 <h2>Success</h2>
+
+<p>Since you've made it this far you have seen, or even tried yourself, the following concepts and tools:
+<ul>
+	<li>Go Testing</li>
+	<li>Minimal Scalable Units</li>
+	<li>Go Benchmarks</li>
+	<li><a href="https://godoc.org/golang.org/x/perf/cmd/benchstat">benchstat</a></li>
+	<li><code>benchmem</code></li>
+	<li><code>blockprofile</code></li>
+</ul>
+</p>
+
+<p>Now instead wondering why your concurrent performance is slower, you have some tools to figure why things got slower and some ideas on how to fix it. Instead of the broken slow implementation we started with, we now have a correct, fast implementation:</p>
 
 {{benchstat "serial.txt reduce-allocs.txt"}}
