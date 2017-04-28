@@ -135,17 +135,17 @@
 <h2>Benchmarks</h2>
 {{apply "benchmark"}}
 
-<p>Go benchmarks are quick to get started with: loop `b.N` times, calling the function to be benchmarked each iteration.</p>
+<p>Now that we have a working version, its time to make it work <em>fast</em>. Benchmarks are a useful tool to do so. Go benchmarks are quick to get started with: loop <code>b.N</code> times, calling the function to be benchmarked each iteration.</p>
 
 {{file "main_test.go"}}
 
-<p>Benchmarks are ran with <code>go test</code>.</p>
+<p>Benchmarks are ran with <code>go test</code>. I save the output using <a href="https://en.wikipedia.org/wiki/Tee_(command)"><code>tee</code></a> for later comparison.</p>
 
 {{run "go test -bench=. -benchmem -count 5 | tee serial.txt"}}
 
-<p>The output shows the benchmark, the number of times the benchmark loop ran (i.e., <code>b.N</code>), and the average time for each run (i.e., total_time/b.N)</p>
+<p>The output shows the benchmark, the number of times the benchmark loop ran (i.e., <code>b.N</code>), and the average time for each run (i.e., <code>total_time/b.N</code>)</p>
 
-<p>NOTE: go will run the entire test suite before running the benchmarks. This is helpful to ensure the whatever you are benchmarking still passes the tests.</p>
+<p>Go will run the test suite before running the benchmarks. This is helpful to ensure the whatever you are benchmarking still passes the tests. The benchmark (and tests) are run 5 times to create enough data for later statisical analysis.</p>
 
 {{commit "benchmark"}}
 
