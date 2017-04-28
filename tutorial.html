@@ -149,14 +149,73 @@
 
 {{commit "benchmark"}}
 
-<h2>Parallel</h2>
+<h2>A Parallel Version</h2>
 {{apply "parallel"}}
+
+<p>When parallelizing code I like to start by finding the minimal unit of work. This is the smallest unit of work the parallel version needs to do. In this case the minimal unit is:
+
+<pre><code>list = append(list, []int{
+	rand.Intn(49),
+	rand.Intn(49),
+	rand.Intn(49),
+	rand.Intn(49),
+	rand.Intn(49),
+	rand.Intn(49),
+	rand.Intn(49),
+})</code></pre>
+</p>
+
+<p>If the minimal scalable unit were safe for concurrent operation (this one is not), running each one in a separate goroutine maximizes concurrency. Even though go can run a million goroutines, there is cost associated with launching and scheduling them. Any interaction between goroutines through channels or mutexes also introduces work the serial version did not need to do. All this extra work is overhead.</p>
+
+<p>The trick to minimizing overhead to gain the benefits of parallelization is to find the minimal scalable unit. By scalable, I mean that the amount of work done by each goroutine is adjustable. In this case the minimal scalable unit is:
+<pre><code>for i := 0; i < n; i++ {
+	list = append(list, []int{
+		rand.Intn(49),
+		rand.Intn(49),
+		rand.Intn(49),
+		rand.Intn(49),
+		rand.Intn(49),
+		rand.Intn(49),
+		rand.Intn(49),
+	})
+}</code></pre>
+Instead of each goroutine generating one lotto number, they will generate <code>n</code> lotto numbers.
+</p>
+
+<p>The next step is to make the minimal scalable unit safe for concurrent execution. The main problem here is append. Since I learned to write code on distributed systems (i.e., many separate computers), my first instinct is to build up a local list and then send it to another goroutine that combines the lists together. While this method works, building local lists, sending them around, and combining them together is all extra work that does not need to be done because each goroutine can just change its part of the list. This can be checked as safe by using the race detector. That changes the minimal scalable unit to:
+<pre><code>for i := begin; i < end; i++ {
+	list[i] = []int{
+		rand.Intn(49),
+		rand.Intn(49),
+		rand.Intn(49),
+		rand.Intn(49),
+		rand.Intn(49),
+		rand.Intn(49),
+		rand.Intn(49),
+	}
+}</code></pre>
+Where <code>begin</code> and <code>end</code> are the part of the work to be accomplished by that unit.
+</p>
+
+<p>The work can then be split as evenly as possible between the desired number of goroutines. Since this example appears to be limited by CPU, one goroutine per processor maximizes the potential benefit (amount of CPU capacity) while minimizing overhead.</p>
+
+<p>Using a <a href="https://godoc.org/sync#WaitGroup"><code>sync.WaitGroup</code></a> to wait until all the goroutines have completed, results in this parallel version:</p>
 
 {{file "main.go"}}
 
-{{run "go test -bench=. -count 5 | tee parallel.txt"}}
+<p>Running the test suite with the race detector enabled checks that this version produces correct results and data races were found.</p>
+
+{{run "go test -race"}}
+
+<p>Since the race detector reduces performance, I don't use it when benchmarking.</p>
+
+{{run "go test -bench=. -benchmem -count 5 | tee parallel.txt"}}
+
+<p>To compare benchmark results and decide if the differences are significant (i.e., <code>p &lt;= 0.05</code>), I use <a href="https://godoc.org/golang.org/x/perf/cmd/benchstat">benchstat</a>.</p>
 
 {{benchstat "serial.txt parallel.txt"}}
+
+<p>Even with my efforts to minimize overhead, the parallel version is slower. Go provides some tools to help figure out what is happening.</p>
 
 {{commit "parallel"}}
 
@@ -193,20 +252,3 @@
 <h2>Success</h2>
 
 {{benchstat "serial.txt reduce-allocs.txt"}}
-
-<hr>
-<pre>TODO
-- msu
-- figure out how to sanitize pprof output
-- file should only display the file, diffs are hard to format and I want to avoid that for now. Also the automatic switching won't let me show the whole thing when the diff is complicated.
-- title
-
-published repo:
-- source branch for tutorial source
-- 2017-04-2x branch for released version
-- set dated branch as default branch
-- readme in all branches explaining the organization
-
-share:
-- I used go's testing, benchmarking, and blockprofile tools to show an alternate way to make the same progress. link
-</pre>
