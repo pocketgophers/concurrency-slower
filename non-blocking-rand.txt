@@ -1,0 +1,12 @@
+BenchmarkLottoNumbers-2   	       3	 409178121 ns/op	88013472 B/op	 1000006 allocs/op
+BenchmarkLottoNumbers-2   	       3	 437492027 ns/op	88013744 B/op	 1000007 allocs/op
+BenchmarkLottoNumbers-2   	       2	 510085622 ns/op	88013456 B/op	 1000006 allocs/op
+BenchmarkLottoNumbers-2   	       2	 515970381 ns/op	88013528 B/op	 1000007 allocs/op
+BenchmarkLottoNumbers-2   	       3	 377589460 ns/op	88013562 B/op	 1000006 allocs/op
+BenchmarkLottoNumbers-2   	       3	 365859756 ns/op	88013424 B/op	 1000006 allocs/op
+BenchmarkLottoNumbers-2   	       3	 401570318 ns/op	88013424 B/op	 1000006 allocs/op
+BenchmarkLottoNumbers-2   	       3	 415616046 ns/op	88013744 B/op	 1000007 allocs/op
+BenchmarkLottoNumbers-2   	       3	 413347570 ns/op	88013424 B/op	 1000006 allocs/op
+BenchmarkLottoNumbers-2   	       3	 372762521 ns/op	88013424 B/op	 1000006 allocs/op
+PASS
+ok  	concurrency-slower	31.948s
