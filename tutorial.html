@@ -145,7 +145,7 @@ WTH? Shouldn’t this be faster? - <a href="https://forum.golangbridge.org/t/con
 
 <p>The output shows the benchmark, the number of times the benchmark loop ran (i.e., <code>b.N</code>), and the average time for each run (i.e., <code>total_time/b.N</code>)</p>
 
-<p>Go will run the test suite before running the benchmarks. This is helpful to ensure the whatever you are benchmarking still passes the tests. The benchmark (and tests) are run 5 times to create enough data for later statisical analysis.</p>
+<p>Go will run the test suite before running the benchmarks. This is helpful to ensure the whatever you are benchmarking still passes the tests. The benchmark (and tests) are run 5 times to create enough data for later statistical analysis.</p>
 
 {{commit "benchmark"}}
 
@@ -257,7 +257,7 @@ Where <code>begin</code> and <code>end</code> are the part of the work to be acc
 
 <h2>Reducing Allocations</h2>
 
-<p>Another thing to notice is the 1.00M allocations per operation. Go allocates memory on the stack or the heap. Stack memory is managed at compile time, meaning there is no additional runtime cost. Heap memory, on the other hand, is managed at runtime. This includes deciding where on the heap to allocate the memory and garbage collection when that allocated memory is no longer needed. It is because of this addition cost that <code>-benchmem</code> only lists heap allocations.</p>
+<p>Another thing to notice is the 1.00M allocations per operation. Go allocates memory on the stack or the heap. Stack memory is managed at compile time. Heap memory, on the other hand, is managed at runtime. This includes deciding where on the heap to allocate the memory and garbage collection when that memory is no longer needed. It is because of this extra cost that <code>-benchmem</code> only lists heap allocations.</p>
 
 <p>Go tries to keep everything on the stack, using escape analysis to figure out what must be on the heap. Compiling with <code>-gcflags=-m</code> displays the results of the escape analysis process:</p>
 
