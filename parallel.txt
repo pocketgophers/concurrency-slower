@@ -1,0 +1,12 @@
+BenchmarkLottoNumbers-2   	       1	1355007482 ns/op
+BenchmarkLottoNumbers-2   	       1	1382990336 ns/op
+BenchmarkLottoNumbers-2   	       1	1359075734 ns/op
+BenchmarkLottoNumbers-2   	       1	1378928110 ns/op
+BenchmarkLottoNumbers-2   	       1	1459903190 ns/op
+BenchmarkLottoNumbers-2   	       1	1378045334 ns/op
+BenchmarkLottoNumbers-2   	       1	1396865096 ns/op
+BenchmarkLottoNumbers-2   	       1	1361738056 ns/op
+BenchmarkLottoNumbers-2   	       1	1367870566 ns/op
+BenchmarkLottoNumbers-2   	       1	1376664014 ns/op
+PASS
+ok  	concurrency-slower	32.045s
