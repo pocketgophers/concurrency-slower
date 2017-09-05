@@ -1,0 +1,3 @@
+Title = "Concurrency Slower?"
+Versions = ["go1.9"]
+Topics = ["performance"]

@@ -1,6 +1,5 @@
 {{version}}
-<h1>Concurrency Slower?</h1>
-
+<!--
 {{removeAll .SiteDir}}
 {{mkdirAll .SiteDir}}
 {{removeAll .BuildDir}}
@@ -10,8 +9,9 @@
 {{runNoOutput "git checkout -b" (.Now.Format "2006-01-02")}}
 {{copy "build-gitignore" .BuildDir ".gitignore"}}
 {{copy "build-readme.md" .BuildDir "readme.md"}}
+{{copy "info.toml" .SiteDir "info.toml"}}
 {{commit "initial"}}
-
+-->
 <blockquote>
 WTH? Shouldn’t this be faster? - <a href="https://forum.golangbridge.org/t/concurrency-slower/5002" title="Concurrency slower?">Concurrency slower?</a>
 </blockquote>
@@ -45,7 +45,7 @@ WTH? Shouldn’t this be faster? - <a href="https://forum.golangbridge.org/t/con
 Each commit in the downloaded git repository corresponds with the progress made in this tutorial.
 </p>
 
-<p>This tutorial was ran on a Late 2010 MacBook Air with 1.6GHz Intel Core 2 Duo with 4GB RAM running macOS 10.12.4.</p>
+<p>This tutorial was ran on a Late 2010 MacBook Air with 1.6GHz Intel Core 2 Duo with 4GB RAM running macOS 10.12.6.</p>
 
 
 <h2>The Posted Code</h2>
@@ -180,7 +180,7 @@ Each commit in the downloaded git repository corresponds with the progress made 
 })</code></pre>
 </p>
 
-<p>If the minimal scalable unit were safe for concurrent operation (this one is not), running each one in a separate goroutine maximizes concurrency. Even though go can run a million goroutines, there is cost associated with launching and scheduling them. Any interaction between goroutines through channels or mutexes also introduces work the serial version did not need to do. All this extra work is overhead.</p>
+<p>If the minimal unit were safe for concurrent operation (this one is not), running each one in a separate goroutine maximizes concurrency. Even though go can run a million goroutines, there is cost associated with launching and scheduling them. Any interaction between goroutines through channels or mutexes also introduces work the serial version did not need to do. All this extra work is overhead.</p>
 
 <p>The trick to minimizing overhead to gain the benefits of parallelization is to find the minimal scalable unit. By scalable, I mean that the amount of work done by each goroutine is adjustable. In this case the minimal scalable unit is:
 <pre><code>for i := 0; i < n; i++ {
