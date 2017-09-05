@@ -1,0 +1,15 @@
+goos: darwin
+goarch: amd64
+pkg: concurrency-slower
+BenchmarkLottoNumbers-2   	       3	 364119147 ns/op	88013445 B/op	 1000006 allocs/op
+BenchmarkLottoNumbers-2   	       3	 346998866 ns/op	88013914 B/op	 1000007 allocs/op
+BenchmarkLottoNumbers-2   	       3	 350583465 ns/op	88013424 B/op	 1000006 allocs/op
+BenchmarkLottoNumbers-2   	       3	 353711867 ns/op	88013498 B/op	 1000007 allocs/op
+BenchmarkLottoNumbers-2   	       3	 348360381 ns/op	88013424 B/op	 1000006 allocs/op
+BenchmarkLottoNumbers-2   	       3	 351494713 ns/op	88013424 B/op	 1000006 allocs/op
+BenchmarkLottoNumbers-2   	       3	 348087193 ns/op	88013424 B/op	 1000006 allocs/op
+BenchmarkLottoNumbers-2   	       3	 354166810 ns/op	88013424 B/op	 1000006 allocs/op
+BenchmarkLottoNumbers-2   	       3	 350044345 ns/op	88013445 B/op	 1000006 allocs/op
+BenchmarkLottoNumbers-2   	       3	 366790968 ns/op	88013701 B/op	 1000007 allocs/op
+PASS
+ok  	concurrency-slower	30.691s
