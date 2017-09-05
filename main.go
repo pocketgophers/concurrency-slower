@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"math/rand"
-	"sync"
 	"time"
 )
 
@@ -22,36 +21,20 @@ func main() {
 }
 
 func lottoNumbers(n int) [][]int {
-	var parallelCount = 10
-	var iterations = n/parallelCount
-	var list = make([][]int, parallelCount*iterations)
-	var wg sync.WaitGroup
+	list := make([][]int, 0, n)
+	rand.Seed(time.Now().UnixNano())
 
-	wg.Add(parallelCount)
-	for i := 0; i < parallelCount; i++ {
-		go func() {
-			defer wg.Done()
-
-			r := rand.New(rand.NewSource(time.Now().UnixNano()))
-
-			for i := 0; i < iterations; i++ {
-				list[parallelCount*iterations-1] = add(r)
-			}
-		}()
+	for i := 0; i < n; i++ {
+		list = append(list, []int{
+			rand.Intn(49),
+			rand.Intn(49),
+			rand.Intn(49),
+			rand.Intn(49),
+			rand.Intn(49),
+			rand.Intn(49),
+			rand.Intn(49),
+		})
 	}
-	wg.Wait()
 
 	return list
-}
-
-func add(r *rand.Rand) []int {
-	return []int{
-		r.Intn(49),
-		r.Intn(49),
-		r.Intn(49),
-		r.Intn(49),
-		r.Intn(49),
-		r.Intn(49),
-		r.Intn(49),
-	}
 }
