@@ -87,3 +87,9 @@ func TestLottoNumbers(t *testing.T) {
 		t.Errorf("ExKurtosis not within %v of uniform (%v): %v", maxDiff, uniform.ExKurtosis(), exk)
 	}
 }
+
+func BenchmarkLottoNumbers(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		lottoNumbers(numberToGenerate)
+	}
+}
